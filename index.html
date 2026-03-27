@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>🎵 猜歌词 | 随机曲库 · 逐字解锁</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f5;
+            font-family: 'Segoe UI', 'Roboto', 'Microsoft YaHei', system-ui, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            max-width: 1000px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+            padding: 24px 28px 32px;
+            transition: all 0.2s;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 2px solid #e9edf2;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+        .counter {
+            background: #f0f4f9;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .status {
+            background: #eef2ff;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #2563eb;
+        }
+        .status.won {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .meta-panel {
+            background: #f9fbfd;
+            border-radius: 24px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #eef2f8;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            font-size: 1rem;
+        }
+        .meta-item {
+            flex: 1;
+            min-width: 180px;
+        }
+        .meta-label {
+            font-size: 0.75rem;
+            color: #5b6e8c;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .meta-value {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 1.3rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            word-break: break-all;
+        }
+        .char-box {
+            display: inline-block;
+            background: #1e293b;
+            color: #1e293b;
+            border-radius: 10px;
+            width: 1.8rem;
+            text-align: center;
+            margin-right: 6px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            line-height: 1.8rem;
+            box-shadow: inset 0 0 0 1px #475569;
+        }
+        .char-box.revealed-meta {
+            background: transparent;
+            color: #0f172a;
+            box-shadow: none;
+        }
+
+        .lyrics-area {
+            background: #ffffff;
+            border-radius: 24px;
+            border: 1px solid #eef2f8;
+            padding: 20px 18px;
+            max-height: 420px;
+            overflow-y: auto;
+            margin: 16px 0;
+        }
+        .lyrics-line {
+            font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 1.05rem;
+            line-height: 1.9rem;
+            margin-bottom: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .char-unit {
+            display: inline-block;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: 500;
+            text-align: center;
+            min-width: 1.3em;
+            margin-right: 1px;
+        }
+        .masked-char {
+            background: #1e293b;
+            color: #1e293b;
+            border-radius: 8px;
+            padding: 0 2px;
+            box-shadow: inset 0 0 0 1px #3a4255;
+            cursor: default;
+        }
+        .unlocked-char {
+            background: transparent;
+            color: #0f172a;
+            font-weight: 500;
+        }
+        .space-unit {
+            display: inline-block;
+            width: 0.6em;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 12px 0 16px;
+            align-items: center;
+        }
+        .input-group {
+            flex: 3;
+            min-width: 180px;
+        }
+        .guess-input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 1.5px solid #cfdfed;
+            border-radius: 60px;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            background: white;
+        }
+        .guess-input:focus {
+            border-color: #3b82f6;
+        }
+        button {
+            background: #3b82f6;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        button:active {
+            transform: scale(0.97);
+        }
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none;
+        }
+        .reveal-answer {
+            background: #f97316;
+        }
+        .next-btn {
+            background: #475569;
+        }
+        .message {
+            background: #f8fafc;
+            border-radius: 28px;
+            padding: 12px 20px;
+            font-size: 0.85rem;
+            color: #1f2a44;
+            text-align: center;
+            margin-top: 12px;
+        }
+        .loading-overlay {
+            text-align: center;
+            padding: 20px;
+            color: #3b82f6;
+            font-weight: 500;
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 20px;
+            color: #6c86a3;
+        }
+        @media (max-width: 620px) {
+            .game-container { padding: 18px; }
+            .char-box { width: 1.5rem; font-size: 1rem; }
+            .lyrics-line { font-size: 0.9rem; line-height: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="gameContainer">
+    <div class="header">
+        <div class="counter">🎧 第 <span id="currentIdx">—</span> / <span id="totalSongs">—</span> 首 &nbsp;| 🏷️ 曲库ID: <strong id="originalNumberSpan">—</strong></div>
+        <div id="statusBadge" class="status">📀 加载曲库中...</div>
+    </div>
+
+    <div class="meta-panel">
+        <div class="meta-item">
+            <div class="meta-label">🎵 歌名（字数）</div>
+            <div id="songNameBoxes" class="meta-value">——</div>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">🎤 歌手（字数）</div>
+            <div id="artistNameBoxes" class="meta-value">——</div>
+        </div>
+    </div>
+
+    <div class="lyrics-area" id="lyricsArea">
+        <div id="lyricsRender" class="loading-overlay">✨ 正在从本地歌曲库加载...</div>
+    </div>
+
+    <div class="controls">
+        <div class="input-group">
+            <input type="text" id="guessInput" class="guess-input" placeholder="输入单个汉字或词语 (例如: 海 / 星星)" autocomplete="off" disabled>
+        </div>
+        <button id="submitGuessBtn" disabled>✨ 猜字/词</button>
+        <button id="revealAnswerBtn" class="reveal-answer" disabled>🔎 显示答案</button>
+        <button id="nextSongBtn" class="next-btn" disabled>⏩ 下一首</button>
+    </div>
+    <div id="messageArea" class="message">📀 等待歌曲库加载完成...</div>
+    <footer>💡 规则：输入汉字，歌词中所有匹配的字会从黑色块变成可见；同时歌名/歌手也会同步解锁对应字。完全猜出【歌名】即为胜利！胜利或显示答案后，所有歌词将完全显现为黑色字体。</footer>
+</div>
+
+<script>
+    // ======================= 猜歌词游戏 · 外部JSON动态加载版 =======================
+    // 不包含任何内置歌词，完全依赖同目录下的 songs.json 文件
+    // 请确保 songs.json 格式正确：[{ "title": "歌名", "artist": "歌手", "lyrics": ["第一行", "第二行"...] }]
+    // ---------------------------------------------------------------------
+
+    // ----- DOM 元素 -----
+    const currentIdxSpan = document.getElementById("currentIdx");
+    const totalSongsSpan = document.getElementById("totalSongs");
+    const originalNumberSpan = document.getElementById("originalNumberSpan");
+    const statusBadge = document.getElementById("statusBadge");
+    const songNameBoxesDiv = document.getElementById("songNameBoxes");
+    const artistNameBoxesDiv = document.getElementById("artistNameBoxes");
+    const lyricsRenderDiv = document.getElementById("lyricsRender");
+    const guessInput = document.getElementById("guessInput");
+    const submitBtn = document.getElementById("submitGuessBtn");
+    const revealAnswerBtn = document.getElementById("revealAnswerBtn");
+    const nextSongBtn = document.getElementById("nextSongBtn");
+    const messageArea = document.getElementById("messageArea");
+
+    // ----- 全局游戏状态 -----
+    let masterSongList = [];            // 从json加载的原始歌曲数组
+    let shuffledPlaylist = [];           // 随机顺序后的播放列表
+    let curIdx = 0;                      // 当前歌曲在 shuffledPlaylist 中的索引
+    let currentSongObj = null;           // 当前歌曲对象
+    let lyricsCharStatus = [];            // 二维数组: 每行 {char, isSpace, revealed}
+    let songTitleChars = [];              // 歌名字符数组 [{char, revealed}]
+    let artistChars = [];                 // 歌手字符数组
+    let gameWon = false;                  // 歌名是否已完全猜出
+    let isFullRevealed = false;           // 是否因胜利/显示答案将所有歌词显现
+    let isLoading = true;                 // 加载锁，防止未就绪时操作
+
+    // ----- 辅助函数：洗牌 (Fisher-Yates) -----
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    // 清洗标点（保留汉字、字母、数字，常见标点变空格，让逐字逻辑干净）
+    function cleanPunctuationKeepHan(str) {
+        return str.replace(/[，,。！？!?；;：:“”\"\'‘’、~～\-—…·_]/g, ' ');
+    }
+
+    // 将字符串转为字符单元数组（空格特殊标记）
+    function stringToCharUnits(str) {
+        const result = [];
+        for (let ch of str) {
+            if (ch === ' ') {
+                result.push({ char: ' ', isSpace: true, revealed: true });
+            } else {
+                result.push({ char: ch, isSpace: false, revealed: false });
+            }
+        }
+        return result;
+    }
+
+    // 强制将所有歌词字符解锁（显现为黑色字体，去掉黑块）
+    function revealAllLyrics() {
+        if (!lyricsCharStatus) return;
+        for (let i = 0; i < lyricsCharStatus.length; i++) {
+            for (let j = 0; j < lyricsCharStatus[i].length; j++) {
+                const cell = lyricsCharStatus[i][j];
+                if (!cell.isSpace && !cell.revealed) {
+                    cell.revealed = true;
+                }
+            }
+        }
+        isFullRevealed = true;
+        renderLyricsFull();
+    }
+
+    // 渲染歌词（根据revealed状态）
+    function renderLyricsFull() {
+        if (!lyricsCharStatus || lyricsCharStatus.length === 0) {
+            lyricsRenderDiv.innerHTML = '<div style="text-align:center; padding:20px;">🎵 暂无歌词数据</div>';
+            return;
+        }
+        let html = "";
+        for (let lineIdx = 0; lineIdx < lyricsCharStatus.length; lineIdx++) {
+            const lineChars = lyricsCharStatus[lineIdx];
+            let lineHtml = '<div class="lyrics-line">';
+            for (let ch of lineChars) {
+                if (ch.isSpace) {
+                    lineHtml += `<span class="space-unit"> </span>`;
+                } else {
+                    if (ch.revealed) {
+                        lineHtml += `<span class="char-unit unlocked-char">${escapeHtml(ch.char)}</span>`;
+                    } else {
+                        lineHtml += `<span class="char-unit masked-char">${escapeHtml(ch.char)}</span>`;
+                    }
+                }
+            }
+            lineHtml += '</div>';
+            html += lineHtml;
+        }
+        lyricsRenderDiv.innerHTML = html;
+    }
+
+    // 更新歌名/歌手区域的抹黑显示
+    function updateMetaDisplay() {
+        if (!songTitleChars) return;
+        let titleHtml = "";
+        for (let i = 0; i < songTitleChars.length; i++) {
+            const item = songTitleChars[i];
+            if (item.revealed) {
+                titleHtml += `<span class="char-box revealed-meta">${escapeHtml(item.char)}</span>`;
+            } else {
+                titleHtml += `<span class="char-box">${escapeHtml(item.char)}</span>`;
+            }
+        }
+        if (titleHtml === "") titleHtml = "<span style='font-size:0.9rem;'>?</span>";
+        songNameBoxesDiv.innerHTML = titleHtml;
+
+        let artistHtml = "";
+        for (let i = 0; i < artistChars.length; i++) {
+            const item = artistChars[i];
+            if (item.revealed) {
+                artistHtml += `<span class="char-box revealed-meta">${escapeHtml(item.char)}</span>`;
+            } else {
+                artistHtml += `<span class="char-box">${escapeHtml(item.char)}</span>`;
+            }
+        }
+        if (artistHtml === "") artistHtml = "<span style='font-size:0.9rem;'>?</span>";
+        artistNameBoxesDiv.innerHTML = artistHtml;
+    }
+
+    // 检查胜利条件（歌名是否全部解锁）
+    function checkWinCondition() {
+        if (gameWon) return;
+        const allTitleRevealed = songTitleChars.every(item => item.revealed === true);
+        if (allTitleRevealed) {
+            gameWon = true;
+            revealAllLyrics();
+            statusBadge.innerText = "🎉 胜利！猜出歌名！ 🎉";
+            statusBadge.classList.add("won");
+            messageArea.innerHTML = `🎉 恭喜！你猜出了歌名《${currentSongObj.title}》！所有歌词已全部显现。点击「下一首」继续游戏。`;
+            guessInput.disabled = true;
+            submitBtn.disabled = true;
+        }
+    }
+
+    // 猜字/词主逻辑
+    function guessWords(inputStr) {
+        if (gameWon) {
+            messageArea.innerHTML = "🏆 已经猜出歌名了！点击「下一首」继续挑战吧。";
+            return;
+        }
+        const raw = inputStr.trim();
+        if (raw === "") {
+            messageArea.innerHTML = "📝 请输入汉字或词语进行解锁";
+            return;
+        }
+        const inputChars = [...new Set(raw.split(''))];
+        let anyMatched = false;
+
+        // 歌词匹配
+        for (let i = 0; i < lyricsCharStatus.length; i++) {
+            for (let j = 0; j < lyricsCharStatus[i].length; j++) {
+                const cell = lyricsCharStatus[i][j];
+                if (!cell.isSpace && !cell.revealed && inputChars.includes(cell.char)) {
+                    cell.revealed = true;
+                    anyMatched = true;
+                }
+            }
+        }
+        // 歌名匹配
+        for (let i = 0; i < songTitleChars.length; i++) {
+            if (!songTitleChars[i].revealed && inputChars.includes(songTitleChars[i].char)) {
+                songTitleChars[i].revealed = true;
+                anyMatched = true;
+            }
+        }
+        // 歌手匹配
+        for (let i = 0; i < artistChars.length; i++) {
+            if (!artistChars[i].revealed && inputChars.includes(artistChars[i].char)) {
+                artistChars[i].revealed = true;
+                anyMatched = true;
+            }
+        }
+
+        if (anyMatched) {
+            updateMetaDisplay();
+            renderLyricsFull();
+            messageArea.innerHTML = `✨ 解锁新字！继续猜，直到歌名完全显现。`;
+            checkWinCondition();
+        } else {
+            messageArea.innerHTML = `❌ 没有匹配到新字，“${escapeHtml(raw)}” 未出现在歌词/歌名/歌手中，再试试别的～`;
+        }
+        guessInput.value = "";
+        guessInput.focus();
+    }
+
+    // 显示完整答案
+    function revealFullAnswer() {
+        if (isLoading) {
+            messageArea.innerHTML = "⏳ 歌曲库未加载完成，请稍后";
+            return;
+        }
+        if (gameWon) {
+            messageArea.innerHTML = `🏅 已经胜利过了！正确答案是《${currentSongObj.title}》 - ${currentSongObj.artist}，歌词已全部可见。`;
+            return;
+        }
+        // 歌名、歌手全揭示
+        for (let i = 0; i < songTitleChars.length; i++) songTitleChars[i].revealed = true;
+        for (let i = 0; i < artistChars.length; i++) artistChars[i].revealed = true;
+        updateMetaDisplay();
+        revealAllLyrics();
+        gameWon = true;
+        statusBadge.innerText = "📖 已显示答案";
+        statusBadge.classList.add("won");
+        messageArea.innerHTML = `🔎 答案是《${currentSongObj.title}》 - ${currentSongObj.artist}。所有歌词已全部显示。点「下一首」继续游戏。`;
+        guessInput.disabled = true;
+        submitBtn.disabled = true;
+    }
+
+    // 切换到下一首（随机顺序循环）
+    function nextSong() {
+        if (isLoading) {
+            messageArea.innerHTML = "⏳ 歌曲库加载中，请稍后再试～";
+            return;
+        }
+        if (!shuffledPlaylist.length) return;
+        curIdx = (curIdx + 1) % shuffledPlaylist.length;
+        loadSong(curIdx);
+    }
+
+    // 加载指定索引的歌曲
+    function loadSong(index) {
+        if (!shuffledPlaylist.length || index >= shuffledPlaylist.length) return;
+        currentSongObj = shuffledPlaylist[index];
+        gameWon = false;
+        isFullRevealed = false;
+
+        // 处理歌词
+        const rawLyrics = currentSongObj.lyrics;
+        const cleanedLines = rawLyrics.map(line => cleanPunctuationKeepHan(line));
+        lyricsCharStatus = cleanedLines.map(line => stringToCharUnits(line));
+
+        // 歌名处理（保留原始字符）
+        songTitleChars = currentSongObj.title.split('').map(ch => ({ char: ch, revealed: false }));
+        // 歌手处理
+        artistChars = currentSongObj.artist.split('').map(ch => ({ char: ch, revealed: false }));
+
+        updateMetaDisplay();
+        renderLyricsFull();
+        updateHeaderInfo();
+
+        statusBadge.innerText = "🔍 猜字解锁中";
+        statusBadge.classList.remove("won");
+        guessInput.disabled = false;
+        submitBtn.disabled = false;
+        revealAnswerBtn.disabled = false;
+        nextSongBtn.disabled = false;
+        guessInput.value = "";
+        messageArea.innerHTML = "💡 输入汉字，歌词和歌名中所有匹配的字会从黑色块中显现！猜出完整歌名即胜利，届时歌词会全部显现。";
+
+        if (currentSongObj.originId) {
+            originalNumberSpan.innerText = currentSongObj.originId;
+        } else {
+            originalNumberSpan.innerText = "🎵";
+        }
+
+        checkWinCondition();
+    }
+
+    // 更新头部计数器信息
+    function updateHeaderInfo() {
+        if (shuffledPlaylist.length) {
+            currentIdxSpan.innerText = curIdx + 1;
+            totalSongsSpan.innerText = shuffledPlaylist.length;
+        } else {
+            currentIdxSpan.innerText = "0";
+            totalSongsSpan.innerText = "0";
+        }
+    }
+
+    // 安全转义（防止XSS）
+    function escapeHtml(str) {
+        if (typeof str !== 'string') return str;
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // ---------- 核心：从本地 songs.json 加载歌曲库 ----------
+    async function loadSongsFromJSON() {
+        isLoading = true;
+        guessInput.disabled = true;
+        submitBtn.disabled = true;
+        revealAnswerBtn.disabled = true;
+        nextSongBtn.disabled = true;
+        lyricsRenderDiv.innerHTML = '<div class="loading-overlay">🎵 正在加载本地歌曲库 songs.json ...</div>';
+        messageArea.innerHTML = "📀 读取歌曲配置中，请稍后...";
+
+        try {
+            const response = await fetch('./songs.json');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: 无法加载 songs.json，请确认文件存在且格式正确`);
+            }
+            const songsData = await response.json();
+            if (!Array.isArray(songsData) || songsData.length === 0) {
+                throw new Error("songs.json 必须是一个非空的歌曲数组");
+            }
+            // 校验必要字段
+            for (let i = 0; i < songsData.length; i++) {
+                const song = songsData[i];
+                if (!song.title || !song.artist || !Array.isArray(song.lyrics)) {
+                    throw new Error(`第 ${i+1} 首歌曲缺少必要字段(title/artist/lyrics)，请检查JSON格式`);
+                }
+            }
+
+            masterSongList = songsData.map((song, idx) => ({
+                ...song,
+                originId: idx + 1,
+                lyrics: [...song.lyrics]
+            }));
+
+            shuffledPlaylist = shuffleArray([...masterSongList]);
+            curIdx = 0;
+            updateHeaderInfo();
+
+            if (shuffledPlaylist.length > 0) {
+                loadSong(0);
+                isLoading = false;
+                guessInput.disabled = false;
+                submitBtn.disabled = false;
+                revealAnswerBtn.disabled = false;
+                nextSongBtn.disabled = false;
+                messageArea.innerHTML = `✅ 成功加载 ${masterSongList.length} 首歌曲！输入汉字开始猜词吧～`;
+            } else {
+                throw new Error("歌曲列表为空");
+            }
+        } catch (error) {
+            console.error("加载歌曲失败:", error);
+            lyricsRenderDiv.innerHTML = `<div style="color:#b91c1c; background:#fee2e2; padding:20px; border-radius:24px;">⚠️ 歌曲库加载失败<br>请确保同目录下存在 songs.json 文件，且格式为 [{ title, artist, lyrics[] }]<br>错误详情: ${escapeHtml(error.message)}</div>`;
+            messageArea.innerHTML = "❌ 无法加载本地歌曲库，请检查 songs.json 文件后刷新页面重试。";
+            statusBadge.innerText = "❌ 曲库错误";
+            statusBadge.style.background = "#fee2e2";
+            statusBadge.style.color = "#b91c1c";
+            isLoading = true;
+            guessInput.disabled = true;
+            submitBtn.disabled = true;
+            revealAnswerBtn.disabled = true;
+            nextSongBtn.disabled = true;
+        }
+    }
+
+    // ----- 事件绑定 -----
+    submitBtn.addEventListener("click", () => {
+        if (isLoading) {
+            messageArea.innerHTML = "⏳ 曲库未就绪，请稍后再试";
+            return;
+        }
+        guessWords(guessInput.value);
+    });
+    revealAnswerBtn.addEventListener("click", () => {
+        if (isLoading) {
+            messageArea.innerHTML = "⏳ 曲库加载中...";
+            return;
+        }
+        revealFullAnswer();
+    });
+    nextSongBtn.addEventListener("click", () => {
+        if (isLoading) {
+            messageArea.innerHTML = "⏳ 请等待歌曲库加载完成";
+            return;
+        }
+        nextSong();
+    });
+    guessInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !isLoading && !gameWon) {
+            guessWords(guessInput.value);
+        } else if (isLoading) {
+            messageArea.innerHTML = "⏳ 歌曲库未就绪";
+        }
+    });
+
+    // 启动游戏
+    loadSongsFromJSON();
+</script>
+</body>
+</html>

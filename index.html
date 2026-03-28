@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎵 猜歌游戏中心</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 20px 0;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .game-card.available {
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        }
+
+        .game-card.available:hover {
+            background: linear-gradient(145deg, #f8f8f8, #e8e8e8);
+        }
+
+        .game-card.coming-soon {
+            background: linear-gradient(145deg, #e0e0e0, #d0d0d0);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .game-card.coming-soon:hover {
+            transform: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .game-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+        }
+
+        .game-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .game-desc {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .badge-new {
+            background: #10b981;
+            color: white;
+        }
+
+        .badge-soon {
+            background: #6b7280;
+            color: white;
+        }
+
+        .lock-icon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.2rem;
+            opacity: 0.5;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            .game-card {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 猜歌游戏中心</h1>
+            <p>选择你喜欢的游戏模式，开始挑战吧！</p>
+        </div>
+
+        <div class="game-grid">
+            <!-- 可用游戏 -->
+            <div class="game-card available" onclick="location.href='game.html'">
+                <div class="game-icon">🎤</div>
+                <div class="game-title">猜歌第一期（试用版）</div>
+                <div class="game-desc">逐字解锁歌词，猜出歌名即可获胜！包含294首经典歌曲等你来挑战！</div>
+                <span class="badge badge-new">✨ 可游玩</span>
+            </div>
+
+            <!-- 敬请期待 -->
+            <div class="game-card coming-soon">
+                <span class="lock-icon">🔒</span>
+                <div class="game-icon">🎧</div>
+                <div class="game-title">猜歌第二期</div>
+                <div class="game-desc">全新曲库，更多挑战，敬请期待！</div>
+                <span class="badge badge-soon">敬请期待</span>
+            </div>
+
+            <div class="game-card coming-soon">
+                <span class="lock-icon">🔒</span>
+                <div class="game-icon">🎹</div>
+                <div class="game-title">听歌识曲</div>
+                <div class="game-desc">听音乐片段，猜出歌曲名称！</div>
+                <span class="badge badge-soon">敬请期待</span>
+            </div>
+
+            <div class="game-card coming-soon">
+                <span class="lock-icon">🔒</span>
+                <div class="game-icon">🎬</div>
+                <div class="game-title">歌手挑战</div>
+                <div class="game-desc">根据歌手信息，猜出他的经典歌曲！</div>
+                <span class="badge badge-soon">敬请期待</span>
+            </div>
+
+            <div class="game-card coming-soon">
+                <span class="lock-icon">🔒</span>
+                <div class="game-icon">🏆</div>
+                <div class="game-title">排行榜模式</div>
+                <div class="game-desc">与好友PK，争夺排行榜榜首！</div>
+                <span class="badge badge-soon">敬请期待</span>
+            </div>
+
+            <div class="game-card coming-soon">
+                <span class="lock-icon">🔒</span>
+                <div class="game-icon">⏱️</div>
+                <div class="game-title">限时挑战</div>
+                <div class="game-desc">在限定时间内猜出尽可能多的歌曲！</div>
+                <span class="badge badge-soon">敬请期待</span>
+            </div>
+        </div>
+
+        <footer>
+            💡 点击卡片进入游戏 | 更多精彩内容持续更新中
+        </footer>
+    </div>
+</body>
+</html>
